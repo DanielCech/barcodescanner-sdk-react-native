@@ -124,18 +124,18 @@ static inline NSDictionary<NSString *, id> *dictionaryFromQuadrilateral(SBSQuadr
     SBSParserResult *parserResult = [parser parseString:code.data error:&error];
     if ((parserResult == nil) || (parserResult.jsonString == nil)) {
         NSLog(@"Code parsing error");
-        return;
     }
-    
-    NSData *jsonData = [parserResult.jsonString dataUsingEncoding:NSUTF8StringEncoding];
-    id jsonObject = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
-    
-    if (error) {
-        NSLog(@"Error parsing JSON: %@", error);
-        return;
+    else {
+        NSData *jsonData = [parserResult.jsonString dataUsingEncoding:NSUTF8StringEncoding];
+        id jsonObject = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
+        
+        if (error) {
+            NSLog(@"Error parsing JSON: %@", error);
+            return;
+        }
+        
+        scanSessionDict[@"parsed"] = jsonObject;
     }
-
-    scanSessionDict[@"parsed"] = jsonObject;
     
     if (self.onScan) {
         self.onScan(scanSessionDict);

@@ -9,7 +9,7 @@ export class SerializationHelper {
 
   static deserializeScanSession(map) {
     return new ScanSession(map.allRecognizedCodes, map.newlyRecognizedCodes,
-      map.newlyLocalizedCodes);
+      map.newlyLocalizedCodes, map.parsed);
   }
 
 }
