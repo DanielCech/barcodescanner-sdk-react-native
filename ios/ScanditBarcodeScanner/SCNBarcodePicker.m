@@ -100,8 +100,45 @@ static inline NSDictionary<NSString *, id> *dictionaryFromQuadrilateral(SBSQuadr
 }
 
 - (void)barcodePicker:(SBSBarcodePicker *)picker didScan:(SBSScanSession *)session {
+    
+    NSMutableDictionary<NSString *, id> *scanSessionDict = [dictionaryFromScanSession(session) mutableCopy];
+    
+    NSError *error;
+    SBSParser *parser = [picker parserForFormat:SBSParserDataFormatDLID error:&error];
+    
+    if ((error != nil) || (parser == nil)) {
+        NSLog(@"Parser error");
+        return;
+    }
+    
+    if (session.newlyRecognizedCodes.count == 0) {
+        return;
+    }
+    
+    SBSCode* code = session.newlyRecognizedCodes[0];
+    if (code.data == nil) {
+        NSLog(@"Code contains no data");
+        return;
+    }
+    
+    SBSParserResult *parserResult = [parser parseString:code.data error:&error];
+    if ((parserResult == nil) || (parserResult.jsonString == nil)) {
+        NSLog(@"Code parsing error");
+        return;
+    }
+    
+    NSData *jsonData = [parserResult.jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    id jsonObject = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
+    
+    if (error) {
+        NSLog(@"Error parsing JSON: %@", error);
+        return;
+    }
+
+    scanSessionDict[@"parsed"] = jsonObject;
+    
     if (self.onScan) {
-        self.onScan(dictionaryFromScanSession(session));
+        self.onScan(scanSessionDict);
     }
     dispatch_semaphore_wait(self.didScanSemaphore, DISPATCH_TIME_FOREVER);
     if (self.shouldStop) {
